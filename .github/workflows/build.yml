@@ -139,3 +139,16 @@ jobs:
         with:
           name: ${{ matrix.variant == 'gms' && 'app-debug-gms' || 'app-debug' }}
           path: app/build/outputs/apk/${{ matrix.variant }}/debug/*.apk
+
+      # --- NEW TELEGRAM NOTIFICATION STEPS ADDED BELOW ---
+      
+      - name: Install Python Requests Dependency
+        run: pip install requests
+
+      # This will run twice—once for FOSS and once for GMS—sending both APKs to you
+      - name: Run Telegram Notification Script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VARIANT: ${{ matrix.variant }}
+        run: python notify_telegram.py
