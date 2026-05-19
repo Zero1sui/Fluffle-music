@@ -2,11 +2,12 @@ import os
 import requests
 import subprocess
 import glob
-import sys
 
 def get_commit_details():
     try:
+        # Get the commit title (subject line)
         title = subprocess.check_output(["git", "log", "-1", "--format=%s"]).decode("utf-8").strip()
+        # Get the commit description (body paragraphs)
         body = subprocess.check_output(["git", "log", "-1", "--format=%b"]).decode("utf-8").strip()
     except Exception as e:
         print(f"Error reading git log: {e}")
@@ -18,7 +19,7 @@ def send_to_telegram():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     variant = os.environ.get("VARIANT", "foss")
-    status = os.environ.get("BUILD_STATUS", "completed") # Can be 'started' or 'completed'
+    status = os.environ.get("BUILD_STATUS", "completed")
 
     if not token or not chat_id:
         print("Error: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID environment variables are missing.")
