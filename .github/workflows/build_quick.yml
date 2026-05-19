@@ -16,6 +16,19 @@ jobs:
         with:
           submodules: recursive
 
+      # Install requests immediately to send the start notification right away
+      - name: Install Python Requests Dependency
+        run: pip install requests
+
+      # Sends the immediate message to Telegram when the build starts
+      - name: Notify Telegram Build Started
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VARIANT: foss
+          BUILD_STATUS: started
+        run: python ${{ github.workspace }}/Notify_telegram.py
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -52,3 +65,13 @@ jobs:
         with:
           name: app-universal-test-release
           path: app/build/outputs/apk/foss/release/out/*
+
+      # Sends the final text message with your release test APK attached
+      # Note: We point the script to look into the 'release' directory structure 
+      - name: Run Telegram Notification Script (Send APK)
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VARIANT: foss/release/out
+          BUILD_STATUS: completed
+        run: python ${{ github.workspace }}/Notify_telegram.py
