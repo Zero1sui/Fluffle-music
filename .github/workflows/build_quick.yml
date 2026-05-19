@@ -1,19 +1,18 @@
 name: Quick Test Build
 
 on:
-  workflow_dispatch:
-  
+  workflow_dispatch: 
+
 permissions:
   contents: write
 
-# The core fix: mapping your actual GitHub secret name to what Python expects
 env:
   TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
 jobs:
   build_quick:
-    name: Quick Universal Release Build
+    name: Quick Universal Debug Build
     runs-on: ubuntu-latest
 
     steps:
@@ -46,8 +45,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK (No Lint)
-        run: ./gradlew --console=plain assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
+      - name: Build Debug APK (Auto-Signed)
+        run: ./gradlew --console=plain assembleFossDebug --warning-mode summary -x lint -x lintFossDebug
         env:
           METROLIST_APPLICATION_ID: com.metrolist.music.test
           METROLIST_APP_NAME: Metrolist Testing
@@ -56,20 +55,20 @@ jobs:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
 
-      - name: Move unsigned APK
+      - name: Move Auto-Signed APK
         run: |
-          OUTPUT_DIR="app/build/outputs/apk/foss/release"
+          OUTPUT_DIR="app/build/outputs/apk/foss/debug"
           mkdir -p "$OUTPUT_DIR/out"
-          find "$OUTPUT_DIR" -maxdepth 1 -name "*.apk" | xargs -I{} mv {} "$OUTPUT_DIR/out/app-universal-test-release.apk"
+          find "$OUTPUT_DIR" -maxdepth 1 -name "*.apk" | xargs -I{} mv {} "$OUTPUT_DIR/out/app-universal-test-debug.apk"
 
-      - name: Upload Unsigned APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v6
         with:
-          name: app-universal-test-release
-          path: app/build/outputs/apk/foss/release/out/*
+          name: app-universal-test-debug
+          path: app/build/outputs/apk/foss/debug/out/*
 
       - name: Run Telegram Notification Script (Send APK)
         env:
-          VARIANT: foss/release/out
+          VARIANT: foss/debug/out
           BUILD_STATUS: completed
         run: python ${{ github.workspace }}/Notify_telegram.py
