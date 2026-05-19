@@ -1,16 +1,7 @@
 name: Quick Test Build
 
 on:
-  workflow_dispatch:
-  push:
-    branches: ["**"]
-    paths-ignore:
-      - "README.md"
-      - "fastlane/**"
-      - "assets/**"
-      - ".github/**/*.md"
-      - ".github/FUNDING.yml"
-      - ".github/ISSUE_TEMPLATE/**"
+  workflow_dispatch: # Allows you to trigger the build manually from the Actions tab
 
 permissions:
   contents: write
