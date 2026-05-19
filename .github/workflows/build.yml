@@ -3,14 +3,7 @@ name: Build APKs
 on:
   workflow_dispatch:
   push:
-    branches: ["**"]
-    paths-ignore:
-      - "README.md"
-      - "fastlane/**"
-      - "assets/**"
-      - ".github/**/*.md"
-      - ".github/FUNDING.yml"
-      - ".github/ISSUE_TEMPLATE/**"
+    branches: ["**"] # Triggers on any commit to any branch
 
 permissions:
   contents: write
@@ -35,11 +28,11 @@ jobs:
         with:
           submodules: recursive
 
-      # Install requests early so we can immediately send the Telegram notification
+      # Install requests immediately to send the start notification right away
       - name: Install Python Requests Dependency
         run: pip install requests
 
-      # --- NEW: IMMEDIATE START NOTIFICATION ---
+      # Sends the immediate message to Telegram
       - name: Notify Telegram Build Started
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -88,7 +81,7 @@ jobs:
           name: ${{ matrix.variant == 'gms' && 'app-debug-gms' || 'app-debug' }}
           path: app/build/outputs/apk/${{ matrix.variant }}/debug/*.apk
 
-      # --- FINAL DELIVERY NOTIFICATION ---
+      # Sends the final text message with the built APK attached
       - name: Run Telegram Notification Script (Send APK)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
