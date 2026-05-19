@@ -2,6 +2,7 @@ import os
 import requests
 import subprocess
 import glob
+import sys
 
 def get_commit_details():
     try:
@@ -13,16 +14,37 @@ def get_commit_details():
         body = "No description provided."
     return title, body
 
-def send_apk_to_telegram():
+def send_to_telegram():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    variant = os.environ.get("VARIANT", "foss")  # Defaults to foss if not provided
+    variant = os.environ.get("VARIANT", "foss")
+    status = os.environ.get("BUILD_STATUS", "completed") # Can be 'started' or 'completed'
 
     if not token or not chat_id:
         print("Error: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID environment variables are missing.")
         return
 
-    # Metro's exact output directory structure based on the matrix variant
+    title, body = get_commit_details()
+
+    # --- CASE 1: WORKFLOW JUST STARTED ---
+    if status == "started":
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        message_text = (
+            f"⏳ *Fluffle Build Started!* ({variant.upper()} Variant)\n\n"
+            f"📌 *Commit:* {title}\n"
+            f"⏱ _Compiling the project... This usually takes about 3 ~ 5 minutes. Hang tight!_"
+        )
+        payload = {
+            "chat_id": chat_id,
+            "text": message_text,
+            "parse_mode": "Markdown"
+        }
+        response = requests.post(url, data=payload)
+        if response.status_code == 200:
+            print(f"Sent 'Started' alert for {variant} to Telegram.")
+        return
+
+    # --- CASE 2: WORKFLOW COMPLETED (SEND APK) ---
     search_path = f"app/build/outputs/apk/{variant}/debug/*.apk"
     apk_files = glob.glob(search_path)
 
@@ -30,10 +52,7 @@ def send_apk_to_telegram():
         print(f"Error: No APK file found matching path: {search_path}")
         return
     
-    apk_path = apk_files[0] # Pick the generated APK
-    title, body = get_commit_details()
-
-    # Formatted message with Markdown
+    apk_path = apk_files[0]
     message_text = (
         f"🚀 *New Build Successful!* ({variant.upper()} Variant)\n\n"
         f"📌 *Commit:* {title}\n"
@@ -42,7 +61,7 @@ def send_apk_to_telegram():
     )
 
     url = f"https://api.telegram.org/bot{token}/sendDocument"
-    print(f"Uploading {variant.upper()} APK and sending notification to Telegram...")
+    print(f"Uploading {variant.upper()} APK to Telegram...")
     
     with open(apk_path, "rb") as apk_file:
         payload = {
@@ -50,17 +69,13 @@ def send_apk_to_telegram():
             "caption": message_text,
             "parse_mode": "Markdown"
         }
-        files = {
-            "document": apk_file
-        }
-        
+        files = {"document": apk_file}
         response = requests.post(url, data=payload, files=files)
         
         if response.status_code == 200:
-            print(f"Successfully sent {variant} build to Telegram!")
+            print(f"Successfully sent {variant} APK to Telegram!")
         else:
-            print(f"Failed to send. Server responded with: {response.status_code}")
-            print(response.text)
+            print(f"Failed to send. Status: {response.status_code}\n{response.text}")
 
 if __name__ == "__main__":
-    send_apk_to_telegram()
+    send_to_telegram()
