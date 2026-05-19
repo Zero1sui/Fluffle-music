@@ -1,9 +1,8 @@
 name: Quick Test Build
 
 on:
-  push:
-    branches: [ "**" ] # This triggers the build on a push to ANY branch
-
+  workflow_dispatch:
+  
 permissions:
   contents: write
 
