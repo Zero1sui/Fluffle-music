@@ -39,7 +39,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VARIANT: ${{ matrix.variant }}
           BUILD_STATUS: started
-        run: python notify_telegram.py
+        run: python ${{ github.workspace }}/notify_telegram.py
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -88,4 +88,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VARIANT: ${{ matrix.variant }}
           BUILD_STATUS: completed
-        run: python notify_telegram.py
+        run: python ${{ github.workspace }}/notify_telegram.py
