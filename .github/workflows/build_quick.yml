@@ -24,7 +24,7 @@ jobs:
       # Sends the immediate message to Telegram when the build starts
       - name: Notify Telegram Build Started
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VARIANT: foss
           BUILD_STATUS: started
@@ -70,7 +70,7 @@ jobs:
       # Sends the final text message with your release test APK attached
       - name: Run Telegram Notification Script (Send APK)
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VARIANT: foss/release/out
           BUILD_STATUS: completed
