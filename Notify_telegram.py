@@ -3,7 +3,7 @@ import sys
 import requests
 
 def main():
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     variant = os.environ.get("VARIANT", "unknown")
     status = os.environ.get("BUILD_STATUS", "unknown")
