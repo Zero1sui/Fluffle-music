@@ -52,7 +52,8 @@ jobs:
           METROLIST_APP_NAME: Metrolist Testing
           PULL_REQUEST: "false"
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
 
       - name: Move unsigned APK
         run: |
