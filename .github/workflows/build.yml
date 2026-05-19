@@ -17,8 +17,6 @@ permissions:
   discussions: write
 
 jobs:
-  # The build_release job has been completely removed to prevent signing errors.
-  
   build_debug:
     name: Build Debug (${{ matrix.variant }})
     if: github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
@@ -37,6 +35,19 @@ jobs:
         with:
           submodules: recursive
 
+      # Install requests early so we can immediately send the Telegram notification
+      - name: Install Python Requests Dependency
+        run: pip install requests
+
+      # --- NEW: IMMEDIATE START NOTIFICATION ---
+      - name: Notify Telegram Build Started
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VARIANT: ${{ matrix.variant }}
+          BUILD_STATUS: started
+        run: python notify_telegram.py
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -54,8 +65,6 @@ jobs:
 
       - name: Restore Persistent Keystore
         run: |
-          # Android requires a keystore even for debugging. 
-          # This command creates a temporary default one safely if DEBUG_KEYSTORE isn't set.
           if [ -z "${{ secrets.DEBUG_KEYSTORE }}" ]; then
             mkdir -p ./app
             keytool -genkey -v -keystore ./app/persistent-debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
@@ -79,12 +88,11 @@ jobs:
           name: ${{ matrix.variant == 'gms' && 'app-debug-gms' || 'app-debug' }}
           path: app/build/outputs/apk/${{ matrix.variant }}/debug/*.apk
 
-      - name: Install Python Requests Dependency
-        run: pip install requests
-
-      - name: Run Telegram Notification Script
+      # --- FINAL DELIVERY NOTIFICATION ---
+      - name: Run Telegram Notification Script (Send APK)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VARIANT: ${{ matrix.variant }}
+          BUILD_STATUS: completed
         run: python notify_telegram.py
