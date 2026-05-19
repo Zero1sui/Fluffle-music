@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
+          fetch-depth: 0 # Forces GitHub to download the git history so git log works
 
       # Install requests immediately to send the start notification right away
       - name: Install Python Requests Dependency
@@ -51,8 +52,7 @@ jobs:
           METROLIST_APP_NAME: Metrolist Testing
           PULL_REQUEST: "false"
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          
 
       - name: Move unsigned APK
         run: |
@@ -67,7 +67,6 @@ jobs:
           path: app/build/outputs/apk/foss/release/out/*
 
       # Sends the final text message with your release test APK attached
-      # Note: We point the script to look into the 'release' directory structure 
       - name: Run Telegram Notification Script (Send APK)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
